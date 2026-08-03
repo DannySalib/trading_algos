@@ -58,7 +58,7 @@ class Config:
     sp500_wiki_url: str = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
     russell2000_url : str = "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239710&component=fundDownload&userType=individual",
 
-
+    nasdaq_n_stocks: int = 2_000 # dtermines the size of the nasdaw universe
     table_index: int  = 0
     ticker_col : str  = "Symbol"
     headers    : dict = field(default_factory=lambda: {"User-Agent": "Mozilla/5.0"})
