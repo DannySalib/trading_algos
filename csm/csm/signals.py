@@ -25,7 +25,6 @@ class PortfolioBuilder(ABC):
                             .first()
                             .dropna()
         )
-
         return pd.DataFrame(0.0, columns=state.data.Close.columns, index=rebalances)
 
 class Signal(ABC):
