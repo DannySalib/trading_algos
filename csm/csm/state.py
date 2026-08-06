@@ -5,12 +5,22 @@ from typing import Optional
 
 import pandas as pd
 
+from functools import wraps
+def cached_on_state(attr: str):
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(cfg, state: State, **kwargs):
+            if getattr(state, attr, None) is None:
+                setattr(state, attr, fn(cfg=cfg, state=state, **kwargs))
+            return getattr(state, attr)
+        return wrapper
+    return decorator
 
 @dataclass
 class State:
     """Empty/None at the start, filled in as the pipeline runs."""
 
-    tickers: list = field(default_factory=list)
+    tickers: set = field(default_factory=set)
 
     data: Optional[pd.DataFrame] = None
     close_spy: Optional[pd.Series] = None
