@@ -55,8 +55,9 @@ def read_cached_data(tickers: list[str]) -> pd.DataFrame:
 
 def download_data(cfg: Config, tickers: list[str]) -> pd.DataFrame:
     data: pd.DataFrame | None = None
+    use_cache = getattr(cfg, 'use_cache', True)
 
-    if cfg.use_cache:
+    if use_cache:
         try:
             data = read_cached_data(tickers)
             logger.info("Loaded cached data: shape=%s", data.shape)
@@ -66,7 +67,8 @@ def download_data(cfg: Config, tickers: list[str]) -> pd.DataFrame:
             logger.exception("Failed to read cache. Downloading full history.")
 
     if data is None:
-        start = dt.datetime.today() - dt.timedelta(days=cfg.master_lookback)
+        master_lookback = getattr(cfg, 'master_lookback', 365) * 10
+        start = dt.datetime.today() - dt.timedelta(days=master_lookback)
     else:
         last_cached = data.index[-1].normalize()
 
