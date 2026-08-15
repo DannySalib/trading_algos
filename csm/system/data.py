@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+from dateutil.relativedelta import relativedelta
 import hashlib
 import logging
 from pathlib import Path
@@ -13,7 +14,7 @@ from .config import Config
 logger = logging.getLogger(__name__)
 
 CACHE_PATH = Path("./.cache")
-
+CACHE_PATH.mkdir(parents=True, exist_ok=True)
 
 def cache_key(tickers: list[str]) -> str:
     """Generates a deterministic hash string for a list of tickers.
@@ -31,7 +32,6 @@ def create_cache_path(tickers: list[str]) -> Path:
 
 
 def cache_data(data: pd.DataFrame, tickers: list[str]) -> None:
-    CACHE_PATH.mkdir(parents=True, exist_ok=True)
     data_cache_path = create_cache_path(tickers)
     logger.info("Caching data to %s...", data_cache_path)
     data.to_parquet(
@@ -53,6 +53,43 @@ def read_cached_data(tickers: list[str]) -> pd.DataFrame:
     return pd.read_parquet(data_cache_path, engine="pyarrow")
 
 
+def _fill_small_gaps(data: pd.DataFrame, limit: int = 3) -> pd.DataFrame:
+    """Forward-fill isolated missing trading days (holidays not caught by the
+    exchange calendar, brief vendor outages, etc.) so a handful of missing
+    prices don't turn into NaN returns downstream. NaN returns get silently
+    dropped by pandas' skipna sum in get_portfolio_returns, which masks the
+    gap as a 0% day and can produce an artificial catch-up jump whenever
+    real data resumes -- forward-filling the *price* here is the correct
+    place to fix that, before any return is ever computed.
+
+    Only *interior* gaps are checked/warned on: NaN sandwiched between two
+    valid observations for that column. Leading NaN (before a ticker's IPO)
+    and trailing NaN (after a delisting) are excluded -- ffill can't and
+    shouldn't touch those, and flagging them is just noise (every recent
+    IPO in a 2,000-ticker universe would trip the warning otherwise).
+    Interior gaps longer than `limit` days are left as NaN and logged:
+    those usually mean a real vendor/listing issue, not a hiccup.
+    """
+    filled = data.ffill(limit=limit)
+
+    notna = data.notna()
+    seen_before = notna.cummax()
+    seen_after = notna[::-1].cummax()[::-1]
+    interior = seen_before & seen_after
+
+    remaining_gaps = filled.isna() & interior
+    if remaining_gaps.to_numpy().any():
+        gap_cols = remaining_gaps.any(axis=0)
+        offenders = gap_cols[gap_cols].index.tolist()
+        logger.warning(
+            "Interior gaps longer than %d trading days remain after "
+            "forward-fill for: %s. These were left as NaN -- verify "
+            "these aren't actively-held positions in the backtest.",
+            limit, offenders,
+        )
+    return filled
+
+
 def download_data(cfg: Config, tickers: list[str]) -> pd.DataFrame:
     data: pd.DataFrame | None = None
     use_cache = getattr(cfg, 'use_cache', True)
@@ -67,8 +104,9 @@ def download_data(cfg: Config, tickers: list[str]) -> pd.DataFrame:
             logger.exception("Failed to read cache. Downloading full history.")
 
     if data is None:
-        master_lookback = getattr(cfg, 'master_lookback', 365) * 10
-        start = dt.datetime.today() - dt.timedelta(days=master_lookback)
+        lb    = getattr(cfg, 'master_lookback_days', 10*366)
+        skip  = getattr(cfg, 'skip_days', 5)
+        start = dt.datetime.today() - relativedelta(days=skip+lb)
     else:
         last_cached = data.index[-1].normalize()
 
@@ -78,7 +116,7 @@ def download_data(cfg: Config, tickers: list[str]) -> pd.DataFrame:
 
         if last_cached >= last_business_day:
             logger.info("Cache is already up to date.")
-            return data
+            return _fill_small_gaps(data)
 
         start = last_cached + pd.Timedelta(days=1)
 
@@ -96,7 +134,7 @@ def download_data(cfg: Config, tickers: list[str]) -> pd.DataFrame:
     if new_data.empty:
         if data is not None:
             logger.info("No new data available.")
-            return data
+            return _fill_small_gaps(data)
 
         raise RuntimeError("No data downloaded from Yahoo Finance.")
 
@@ -113,4 +151,4 @@ def download_data(cfg: Config, tickers: list[str]) -> pd.DataFrame:
     cache_data(data, tickers)
 
     logger.info("Final data shape: %s", data.shape)
-    return data
+    return _fill_small_gaps(data)

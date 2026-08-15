@@ -24,6 +24,7 @@ from .portfolio import (
     get_portfolio_drawdown,
     get_spy_drawdown,
     get_first_trade_date,
+    get_portfolio_returns_levered,
 )
 
 __all__ = [
@@ -51,4 +52,5 @@ __all__ = [
     "get_spy_drawdown",
     "get_first_trade_date",
     "get_spy_returns",
+    "get_portfolio_returns_levered",
 ]

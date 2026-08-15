@@ -47,4 +47,10 @@ class NasdaqUniverse(Universe):
         snap_df  = snap_df[snap_df['price'] > 5]
         snap_df  = snap_df.sort_values('dollar_vol', ascending=False)
         n_stocks = getattr(cfg, 'nasdaq_n_stocks', 2_000)
-        return snap_df.head(n_stocks)['ticker'].tolist()
+        if n_stocks > 0:
+            snap_df = snap_df.head(n_stocks)
+        return snap_df['ticker'].tolist()
+
+class GlobalEquityMomentumUniverse:
+    def load(cfg) -> list[str]:
+        return [] # not needed

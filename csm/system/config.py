@@ -31,6 +31,12 @@ def param_grid(**value_lists) -> list[Param]:
 class Config:
     """Infra settings, never swept. Unknown attrs fall through to `param`."""
     param: Param = field(default_factory=Param)
+    trade_freq: str = field(default='W-MON')
+    nasdaq_n_stocks: int = field(default=2_000)
+    n_basket: int = field(default=50)
+    strategy: str = field(default='Global Equity Momentum') # or 'Global Equity Momentum'
+    skip_days: int = field(default=5)
+    leverage: bool = field(default=False)
 
     @property
     def sample_end_year(self) -> int:

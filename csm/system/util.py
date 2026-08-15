@@ -1,16 +1,17 @@
 
 import pandas as pd
 
-# TODO remove hindsight bias via skip days
+# skip days already shifts to only use data through t-skip -- no hindsight bias here
 def absolute_momentum(cfg, data: pd.DataFrame | pd.Series):
     skip = getattr(cfg, 'skip_days', 5) # Gary Antonacci reccomends 5 over 21
     lb = getattr(cfg, 'abs_mom_lb', 252)
     stock_prices = data.shift(skip)
     return (stock_prices / stock_prices.shift(lb)) - 1
 
-def yearly_return(cfg, data: pd.DataFrame | pd.Series):
+def yearly_return(cfg, prices: pd.DataFrame | pd.Series):
     skip = getattr(cfg, 'skip_days', 5) # Gary Antonacci reccomends 5 over 21
-    return data.shift(skip) / data.shift(skip+252)
+    current = prices.shift(skip)
+    return current  / current.shift(252)
 
 def return_(data: pd.DataFrame | pd.Series):
     return data.pct_change(fill_method=None)
