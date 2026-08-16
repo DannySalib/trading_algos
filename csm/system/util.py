@@ -20,8 +20,8 @@ def equity(returns: pd.Series) -> pd.Series:
     return (returns.fillna(0)+1).cumprod()
 
 def drawdown(equity: pd.Series) -> pd.Series:
-    equity_cummax = equity.cummax()
-    return (equity_cummax - equity) / equity
+    peak = equity.cummax()
+    return (peak - equity) / peak
 
 def rebase(series: pd.Series, start=None) -> pd.Series:
     s = series if start is None else series.loc[start:]

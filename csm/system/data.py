@@ -28,7 +28,7 @@ def cache_key(tickers: list[str]) -> str:
 
 def create_cache_path(tickers: list[str]) -> Path:
     """Returns a Path object instead of raw string."""
-    return CACHE_PATH / f"{cache_key(tickers)}.parquet"
+    return CACHE_PATH / f"{cache_key(tickers)}.parquet.gzip"
 
 
 def cache_data(data: pd.DataFrame, tickers: list[str]) -> None:

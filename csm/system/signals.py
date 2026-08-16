@@ -64,9 +64,15 @@ class CsmPortfolioBuilder(MomentumPortfolioBuilder):
         dm_df = DualMomInd.signal(cfg, state)
         iv_df = InvVolSig.signal(cfg, state)
         fip_df = FrogInPan.signal(cfg, state)
+
         ret_us_eqty_s = UsEquityYtdReturns.signal(cfg, state)
         ret_glbl_eqty_s = GlobalEquityYtdReturns.signal(cfg, state)
         ret_tbill_eqty_s = TbillEquityYtdReturns.signal(cfg, state)
+
+        # Force all signals onto the portfolio's master date index
+        ret_us_eqty_s = ret_us_eqty_s.reindex(signal_df.index)
+        ret_glbl_eqty_s = ret_glbl_eqty_s.reindex(signal_df.index)
+        ret_tbill_eqty_s = ret_tbill_eqty_s.reindex(signal_df.index)
 
         valid = ret_us_eqty_s.notna() & ret_glbl_eqty_s.notna() & ret_tbill_eqty_s.notna()
 
