@@ -14,7 +14,7 @@ from system.accessors import get_tickers_returns, get_tbill_returns, get_global_
 from system.util import portfolio_returns, first_trade_date, sharpe_ratio, sortino_ratio, max_drawdown
 from system.visualize import export_report_pdf
 
-BACKTEST_REPORT_PATH = Path(__file__).parent / 'reports'
+BACKTEST_REPORT_PATH = Path(__file__).parent
 BACKTEST_REPORT_PATH.mkdir(exist_ok=True, parents=True)
 
 def _str_to_bool(v: str) -> bool:

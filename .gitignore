@@ -1,2 +1,6 @@
 .venv/
+<<<<<<< HEAD
 *.gzip
+=======
+csm/.cache/*.gz
+>>>>>>> b8c65657c756799104e75bbe2148d940ce79b41d
