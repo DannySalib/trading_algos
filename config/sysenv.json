@@ -1,0 +1,18 @@
+{
+    "period" : {
+        "t0": null,
+        "tf": null
+    },
+    "data_acquisition" : {
+        "platform": "yfinance"
+    },
+    "universe": {
+        "definition": {
+            "type": "named",
+            "name": "NASDAQ"
+        }
+    },
+    "signals": [
+
+    ]
+}
