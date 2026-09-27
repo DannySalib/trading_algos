@@ -4,9 +4,9 @@ from datetime import date, timedelta
 
 import pandas as pd
 import yfinance as yf
-import requests_cache
+# import requests_cache
 
-from ._base import DataAcquisitionClient, CACHE_PATH
+from ._base import DataAcquisitionClient
 
 # CACHE_PATH_YF_SESSION = CACHE_PATH / "yf_session"
 
@@ -29,6 +29,6 @@ class YahooFinanceDataAcquisition(DataAcquisitionClient):
             group_by="ticker",
             threads=True,
             auto_adjust=True,
-            progress=False,
+            # progress=False,
             # session=self._session
         )

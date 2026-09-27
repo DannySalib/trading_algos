@@ -28,7 +28,7 @@ class Runner:
         p = self._env.period
         return Period(
             t0=p.t0 - timedelta(days=self.max_lookback_days),
-            tf=p.tf
+            tf=p.tf + timedelta(days=1)
         )
 
     @cached_property
@@ -59,3 +59,8 @@ class Runner:
             f"Took: {elapsed:.2f}s"
         )
         return df
+
+    @cached_property
+    def close_data(self) -> pd.DataFrame:
+        return self.data.xs("Close", level="Price", axis=1)
+

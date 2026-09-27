@@ -1,7 +1,7 @@
 {
     "period" : {
-        "t0": null,
-        "tf": null
+        "t0": "2024-09-25",
+        "tf": "2026-09-25"
     },
     "data_acquisition" : {
         "platform": "yfinance"
@@ -14,5 +14,8 @@
     },
     "signals": [
 
-    ]
+    ],
+    "data_process" : {
+        "drop_ipo_tickers": true
+    }
 }
