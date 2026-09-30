@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 from tradingsys.models import RunnerEnviron
 from .data_acquisition import get_data, get_data_acquisition_client
 from .universe import get_universe_tickers
+from .data_process import construct_data_process
 from ..models.period import Period
-from ..config import CACHE_PATH
 
 class Runner:
     def __init__(self, env: RunnerEnviron):
@@ -47,20 +47,31 @@ class Runner:
         )
 
         start_time = time.perf_counter()
-        df = get_data(
-            client=self.daq_client,
-            tickers=self.universe_tickers,
-            period=self.padded_period,
-        )
+        df = self._get_raw_ohlcv_data()
         elapsed = time.perf_counter() - start_time
 
         logger.info(
             f"Successfully fetched data | Shape: {df.shape} | "
             f"Took: {elapsed:.2f}s"
         )
-        return df
 
+        df = self._run_data_process(df)
+        logger.info("Successfully ran data processes...")
+        return df
+    
     @cached_property
     def close_data(self) -> pd.DataFrame:
         return self.data.xs("Close", level="Price", axis=1)
 
+    def _get_raw_ohlcv_data(self):
+        return get_data(
+            client=self.daq_client,
+            tickers=self.universe_tickers,
+            period=self.padded_period,
+        )
+
+    def _run_data_process(self, df: pd.DataFrame) -> pd.DataFrame:
+        logger.info("Constructing data processor and running...")
+        for process in construct_data_process(self._env.data_process):
+            df = process(df)
+        return df
