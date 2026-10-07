@@ -21,11 +21,10 @@ def _configure_logging() -> None:
 
 def main() -> None:
     _configure_logging()
-    env = load_env()
-    logger.info("Loaded environment for period %s to %s", env.period.t0, env.period.tf)
 
-    runner = Runner(env)
-    print(runner.data)
+    runner = Runner()
+    runner._apply_forecasts()
+    print(runner.forecasts['absolute_momentum'].data)
 
 
 if __name__ == '__main__':

@@ -21,27 +21,36 @@ def load_sysenv_data(path: Path = SYSENV_PATH) -> Any:
     with open(path, 'r', encoding="utf-8") as f:
         return json.load(f)
 
-
 def load_env(path: Path = SYSENV_PATH) -> RunnerEnviron:
     """Load and validate the runner environment from a sysenv config file.
 
-    This is an explicit, on-demand loader rather than an import-time side
-    effect: call it from an application entrypoint (see main.py), not from
-    package __init__.py. That keeps `import tradingsys` safe to do in tests,
-    tooling, and anywhere else a config file might not be present or valid.
-
     Raises:
-        json.JSONDecodeError: if the file is not valid JSON.
-        pydantic.ValidationError: if the data doesn't match RunnerEnviron.
+        json.JSONDecodeError: If the file is not valid JSON.
+        pydantic.ValidationError: If the data doesn't match RunnerEnviron.
     """
     try:
         env_data = load_sysenv_data(path)
     except json.JSONDecodeError as e:
-        logger.error("Invalid JSON at line %s, column %s: %s", e.lineno, e.colno, e.msg)
+        logger.error(
+            "Invalid JSON in %s at line %s, column %s: %s",
+            path,
+            e.lineno,
+            e.colno,
+            e.msg,
+        )
         raise
 
     try:
-        return RunnerEnviron.model_validate(env_data)
-    except ValidationError:
-        logger.exception("Could not validate sysenv configuration")
+        env = RunnerEnviron.model_validate(env_data)
+    except ValidationError as e:
+        for error in e.errors():
+            field = ".".join(str(x) for x in error["loc"])
+            logger.error(
+                "Invalid sysenv configuration: '%s' — %s",
+                field,
+                error["msg"],
+            )
         raise
+    
+    logger.info("Loaded environment for period %s to %s", env.period.t0, env.period.tf)
+    return env

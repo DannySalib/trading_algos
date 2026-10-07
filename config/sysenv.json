@@ -12,10 +12,18 @@
             "name": "NASDAQ"
         }
     },
-    "signals": [
-
-    ],
     "data_process" : {
         "drop_ipo_tickers": true
-    }
+    },
+    "signals": [
+        {
+            "name": "absolute_momentum",
+            "function_name": "absolute_momentum",
+            "function_args": {
+                "skip_days": 21
+            },
+            "lookback_days": 273,
+            "data_need": "log_returns_close_data"
+        }
+    ]
 }
