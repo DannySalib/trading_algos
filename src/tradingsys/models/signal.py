@@ -10,10 +10,9 @@ from .. import signal_functions
 class Signal(BaseModel):
     name: str
     function_name: str
-    data_need: str
     function_args: dict[str, Any]
     lookback_days: int
-    data_need: str 
+    data_needs: list[str]
 
     @model_validator(mode="after")
     def validate_function(self) -> "Signal":

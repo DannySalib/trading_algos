@@ -1,7 +1,7 @@
 
 
-from ._base import UniverseSource
-from tradingsys.models.universe import CustomUniverse as CustomUniverseDefinition
+from .universe_source import UniverseSource
+from ...models.universe import CustomUniverse as CustomUniverseDefinition
 
 class CustomUniverse(UniverseSource):
     """Wraps an explicit ticker list so it can be treated like any other Universe."""

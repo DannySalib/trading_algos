@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import shelve
 import time
-from pathlib import Path
 
 from tradingsys.models.universe import (
     NamedUniverse,
@@ -11,11 +10,15 @@ from tradingsys.models.universe import (
     Universe as UniverseModel,
 )
 
-from ._base import UniverseSource, CACHE_PATH
+from .universe_source import UniverseSource
 from .nasdaq_universe import NasdaqUniverse
 from .custom_universe import CustomUniverse
+from ...config import CACHE_PATH
+from ...cache_functions import cached_fetch
 
 _CACHE_PATH_UNIVERSE = CACHE_PATH / "universes"
+_CACHE_PATH_UNIVERSE.parent.mkdir(parents=True, exist_ok=True)
+
 _CACHE_TTL = 60 * 60 * 24 * 30 * 6
 
 _NAMED_UNIVERSES: dict[UniverseName, type[UniverseSource]] = {
@@ -37,27 +40,13 @@ def get_universe_tickers(universe: UniverseModel) -> list[str]:
                 f"Unrecognized universe type: {definition.type}"
             )
 
-
 def _get_cached_named(definition: NamedUniverse) -> list[str]:
-    _CACHE_PATH_UNIVERSE.parent.mkdir(parents=True, exist_ok=True)
-
-    key = definition.name.value
-
-    with shelve.open(str(_CACHE_PATH_UNIVERSE)) as cache:
-        entry = cache.get(key)
-
-        if entry and time.time() - entry["timestamp"] < _CACHE_TTL:
-            return entry["tickers"]
-
-        tickers = _resolve_named_universe(definition).fetch_tickers()
-
-        cache[key] = {
-            "timestamp": time.time(),
-            "tickers": tickers,
-        }
-
-        return tickers
-
+    return cached_fetch(
+        key=definition.name.value,
+        fetch=_resolve_named_universe(definition).fetch_tickers,
+        cache_path=str(_CACHE_PATH_UNIVERSE),
+        ttl=_CACHE_TTL
+    )
 
 def _resolve_named_universe(definition: NamedUniverse) -> UniverseSource:
     try:

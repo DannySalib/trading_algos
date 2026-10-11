@@ -1,8 +1,8 @@
 from __future__ import annotations 
 
 from typing import Callable
-from ..models.signal import Signal
-from .. import signal_functions
+from ...models.signal import Signal
+from ... import signal_functions
 
 import pandas as pd 
 
@@ -25,9 +25,9 @@ class Forecast:
             **signal.function_args # this is also safe with model validation 
         )
 
-        self._data_need = signal.data_need
+        self._data_needs = signal.data_needs
 
-        self._data: pd.DataFrame | None = None
+        self._raw_data: pd.DataFrame | pd.Series | None = None
 
     @property 
     def name(self): return self._name 
@@ -36,20 +36,19 @@ class Forecast:
     def signal_function(self): return self._signal_function
 
     @property
-    def data_need(self): return self._data_need
+    def data_needs(self): return self._data_needs
 
     @property
-    def data(self):
-        if self._data is None:
+    def raw_signal(self):
+        if self._raw_data is None:
             raise RuntimeError(f"Asked for forecast {self._name} data but is None")
-        return self._data
-    
+        return self._raw_data
 
-    def apply(self, data: pd.DataFrame | pd.Series) -> pd.DataFrame | pd.Series:
+
+    def create_raw_signal(self, **data: dict[str, pd.DataFrame | pd.Series]) -> pd.DataFrame | pd.Series:
         # assumes correct data is provided
         # based on `data_need` property 
-        self._data = self._signal_function(data)
-
+        self._raw_data = self._signal_function(**data)
 
     def __str__(self):
-        return f'Forecast name: {self._name} needs {self._data_need}'
+        return f'Forecast name: {self._name} needs {self._data_needs}'

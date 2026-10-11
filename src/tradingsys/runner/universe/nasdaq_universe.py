@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ._base import UniverseSource
+from .universe_source import UniverseSource
 
 import pandas as pd
 import yfinance as yf

@@ -4,16 +4,12 @@ from datetime import date, timedelta
 
 import pandas as pd
 import yfinance as yf
-# import requests_cache
 
-from ._base import DataAcquisitionClient
-
-# CACHE_PATH_YF_SESSION = CACHE_PATH / "yf_session"
+from .data_acquisition_client import DataAcquisitionClient
 
 class YahooFinanceDataAcquisition(DataAcquisitionClient):
     def __init__(self):
         super().__init__()
-        # self._session = requests_cache.CachedSession(CACHE_PATH_YF_SESSION, expire_after=3600)
 
     """Fetches historical OHLCV data from Yahoo Finance via yfinance."""
     def fetch_price_history(
@@ -29,6 +25,4 @@ class YahooFinanceDataAcquisition(DataAcquisitionClient):
             group_by="ticker",
             threads=True,
             auto_adjust=True,
-            # progress=False,
-            # session=self._session
         )

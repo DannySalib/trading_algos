@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from datetime import date
-
 import pandas as pd
-from .._base import CACHE_PATH
+import logging
+from ...config import CACHE_PATH
 
+_OHLC_CACHE = CACHE_PATH / "price_data.parquet"
+logger = logging.getLogger(__name__)
 
 class DataAcquisitionClient(ABC):
     """Contract for a market-data backend.

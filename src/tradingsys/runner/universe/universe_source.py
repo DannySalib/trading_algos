@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from .._base import CACHE_PATH
 
 class UniverseSource(ABC):
     """Contract for something that can produce a list of tradeable tickers.

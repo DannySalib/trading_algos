@@ -2,8 +2,7 @@ from __future__ import annotations
 from typing import Any, Callable
 
 import pandas as pd 
-
-from tradingsys.models.data_process import DataProcess
+from ..models.data_process import DataProcess
 
 class DataProcessStep:
     DROP_IPO = "drop_ipo_tickers"

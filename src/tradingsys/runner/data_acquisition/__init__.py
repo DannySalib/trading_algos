@@ -1,19 +1,18 @@
 from __future__ import annotations
 
-import logging
-import logging
 import pandas as pd
-
-from tradingsys.models.data_acquisition import DataAcquisitionPlatform
-from tradingsys.models.period import Period
-from tradingsys.models.price_metadata import PriceMetaData
-
-from ._base import CACHE_PATH, DataAcquisitionClient
-from .yahoo_finance_data_acquisition import YahooFinanceDataAcquisition
-
-logger = logging.getLogger(__name__)
+import logging
+from ...config import CACHE_PATH
 
 _OHLC_CACHE = CACHE_PATH / "price_data.parquet"
+logger = logging.getLogger(__name__)
+
+from .yahoo_finance_data_acquisition import YahooFinanceDataAcquisition
+from ...models.metadata import PriceMetaData
+from ...models.period import Period
+from ...models.data_acquisition import DataAcquisitionPlatform
+
+from .data_acquisition_client import DataAcquisitionClient
 
 def get_data_acquisition_client(
     platform: DataAcquisitionPlatform,
@@ -28,7 +27,7 @@ def get_data_acquisition_client(
                 f"Unrecognized Data Acquisition Platform: {platform}"
             )
     
-def get_data(
+def fetch_price_history_cached(
     client: DataAcquisitionClient,
     tickers: list[str],
     period: Period,
