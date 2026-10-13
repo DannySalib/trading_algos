@@ -8,8 +8,33 @@
     },
     "universe": {
         "definition": {
-            "type": "named",
-            "name": "NASDAQ"
+            "type": "custom",
+            "tickers": [
+                "AAAP",
+                "AACG",
+                "AACI",
+                "AACIU",
+                "AACIW",
+                "AACO",
+                "AACOU",
+                "AACOW",
+                "AACP",
+                "AACPR",
+                "AACPU",
+                "AACPW",
+                "AADR",
+                "AAEQ",
+                "AAL",
+                "AALG",
+                "AAME",
+                "AAOI",
+                "AAON",
+                "AAPB",
+                "AAPD",
+                "AAPG",
+                "AAPL",
+                "AAPU"
+            ]
         }
     },
     "data_process" : {
@@ -20,9 +45,9 @@
             "name": "absolute_momentum",
             "function_name": "absolute_momentum",
             "function_args": {
-                "skip_days": 21
+                "skip_days": 5
             },
-            "lookback_days": 273,
+            "lookback_days": 15,
             "data_needs": [
                 "log_returns_close_data"
             ]
@@ -31,7 +56,7 @@
             "name": "donchain_breakout",
             "function_name": "donchain_breakout",
             "function_args": {},
-            "lookback_days": 22,
+            "lookback_days": 10,
             "data_needs": [
                 "close_data",
                 "high_data",

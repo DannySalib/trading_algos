@@ -1,18 +1,21 @@
-from __future__ import annotations
+# this will be depricated:
+# forecast is TTL cache not does not follow a converage rule like price data  
 
-from .metadata import MetaData
-from ...config import CACHE_PATH
-from datetime import date 
+# from __future__ import annotations
 
-FORECAST_META_DATA_CACHE_PATH = CACHE_PATH / "price_metadata.json"
+# from .metadata import MetaData
+# from ...config import CACHE_PATH
+# from datetime import date 
 
-class ForecastMetaData(MetaData):
+# _FORECAST_META_DATA_CACHE_PATH = CACHE_PATH / "forecast_metadata.json"
 
-    forecast_names: list[str]
-    updated: date 
-    def save(self) -> None:
-        super().save(FORECAST_META_DATA_CACHE_PATH)
+# class ForecastMetaData(MetaData):
 
-    @staticmethod
-    def load() -> ForecastMetaData:
-        return MetaData.load(FORECAST_META_DATA_CACHE_PATH)
+#     forecast_names: list[str]
+#     updated: date 
+#     def save(self) -> None:
+#         super().save(_FORECAST_META_DATA_CACHE_PATH)
+
+#     @classmethod
+#     def load(cls) -> ForecastMetaData:
+#         return super().load(_FORECAST_META_DATA_CACHE_PATH)

@@ -3,6 +3,16 @@ from typing import Callable, Any
 import shelve
 import time
 
+def cache_put(key: str, value: Any, cache_path: str) -> None:
+    with shelve.open(cache_path) as cache:
+        cache[key] = {"timestamp": time.time(), "value": value}
+
+def cache_get(key: str, cache_path: str) -> Any:
+    with shelve.open(cache_path) as cache:
+        entry = cache.get(key)
+        if entry is None:
+            raise KeyError(f"No cache entry for {key}")
+        return entry["value"]
 
 def cached_fetch(
     key: str,

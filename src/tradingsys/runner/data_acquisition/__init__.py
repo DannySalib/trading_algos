@@ -41,13 +41,15 @@ def fetch_price_history_cached(
     cache_valid = (
         meta_data is not None
         and set(meta_data.tickers) == set(tickers)
-        and meta_data.period == period
+        and meta_data.period.t0 <= period.t0      # cache starts at or before what we need
+        and meta_data.period.tf >= period.tf      # cache ends at or after what we need
         and _OHLC_CACHE.exists()
     )
 
     if cache_valid:
         logger.info("Loading price data from cache: %s", _OHLC_CACHE)
-        return pd.read_parquet(_OHLC_CACHE, engine="pyarrow")
+        data = pd.read_parquet(_OHLC_CACHE, engine="pyarrow")
+        return data.loc[pd.Timestamp(period.t0):pd.Timestamp(period.tf)]
 
     logger.info("Fetching price data for %d tickers", len(tickers))
 

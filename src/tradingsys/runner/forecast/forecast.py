@@ -5,6 +5,10 @@ from ...models.signal import Signal
 from ... import signal_functions
 
 import pandas as pd 
+import numpy as np 
+import logging
+
+logger = logging.getLogger(__name__)
 
 SignalFunction = Callable[
     [pd.DataFrame | pd.Series],
@@ -44,11 +48,24 @@ class Forecast:
             raise RuntimeError(f"Asked for forecast {self._name} data but is None")
         return self._raw_data
 
-
-    def create_raw_signal(self, **data: dict[str, pd.DataFrame | pd.Series]) -> pd.DataFrame | pd.Series:
+    def create_raw_signal(self, **data: dict[str, pd.DataFrame | pd.Series]) -> None:
         # assumes correct data is provided
-        # based on `data_need` property 
-        self._raw_data = self._signal_function(**data)
+        # based on `data_need` property
+        raw = self._signal_function(**data)
+        self._raw_data = self._sanitize_infinities(raw)
 
+    def _sanitize_infinities(
+        self, raw: pd.DataFrame | pd.Series
+    ) -> pd.DataFrame | pd.Series:
+        """Turn +/-inf (e.g. division by zero) into NaN so they are never clipped
+        into a legitimate-looking +/-20 forecast. Not ffilled or interpolated."""
+        inf_mask = np.isinf(raw)
+        n_inf = int(inf_mask.to_numpy().sum())
+        if n_inf:
+            logger.warning(
+                "Forecast '%s' produced %d infinite value(s); setting to NaN",
+                self._name, n_inf,
+            )
+        return raw.mask(inf_mask)
     def __str__(self):
         return f'Forecast name: {self._name} needs {self._data_needs}'

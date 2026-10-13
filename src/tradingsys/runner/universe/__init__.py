@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import shelve
-import time
-
 from tradingsys.models.universe import (
     NamedUniverse,
     UniverseName,

@@ -6,8 +6,7 @@ import numpy as np
 # these functions return functions that take data as an input and data as an output 
 def absolute_momentum(lookback_days: int, skip_days: int):
     def calculation(log_returns_close_data: pd.DataFrame | pd.Series):
-        r_skip = log_returns_close_data.shift(skip_days)
-        return (r_skip / r_skip.shift(lookback_days)) - 1
+        return log_returns_close_data.shift(skip_days).rolling(lookback_days).sum()
     return calculation
 
 def donchain_breakout(lookback_days: int):

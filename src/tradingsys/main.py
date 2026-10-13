@@ -21,10 +21,9 @@ def main() -> None:
     _configure_logging()
 
     runner = Runner()
-    df = runner.get()
-    # df.to_csv('get_unweighted_forecast_data_output.csv')
+    df = runner.get_unweighted_forecast_data()
+    df.to_csv('get_unweighted_forecast_data_output.csv')
     print(df)
-    # runner.close_data.to_csv('close_data.csv')
     
 if __name__ == '__main__':
     main()

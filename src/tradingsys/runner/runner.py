@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from pandas.tseries.offsets import BDay
+
 import logging
 from functools import cached_property
 from datetime import timedelta
@@ -17,24 +19,23 @@ from .data_acquisition import fetch_price_history_cached, get_data_acquisition_c
 from .universe import get_universe_tickers
 from .data_process import construct_data_process
 from ..models.period import Period
-from .forecast import (
-    construct_forecasts,
-    stale_forecast_scalar,
-    apply_forecast_scalar,
-    AVG_ABS_MIN_PERIOD
-)
-
+from ..models.signal import Signal
+from . import forecast as fc  
 from ..config import load_env
+
+HOLIDAY_CUSHION_ROWS = 5 
 
 class Runner:
     def __init__(self, env: RunnerEnviron = None):
         self._env = env or load_env()
 
-        self._forecasts = construct_forecasts(self._env.signals)
+        self._forecasts = fc.construct_forecasts(self._env.signals)
 
-        # when stale, we need to recompute the forecast scalar
-        # which requres an extra `AVG_ABS_MIN_PERIOD` days of data 
-        self._stale_forecast_scalar = stale_forecast_scalar(self._forecasts)
+        self._scalar_key = fc.forecast_scalar_key(
+            self._forecasts, self.universe_tickers, self._env.period
+        )
+
+        self._stale_forecast_scalar = fc.stale_forecast_scalar(self._scalar_key)
 
     @property
     def forecasts(self): return self._forecasts
@@ -52,15 +53,18 @@ class Runner:
         return max((s.lookback_days for s in self._env.signals), default=0)
 
     @property
+    def warmup_rows(self) -> int:
+        rows = max((_signal_warmup_rows(s) for s in self._env.signals), default=0)
+        if self._stale_forecast_scalar:
+            rows += fc.AVG_ABS_MIN_PERIOD  # scalar needs this many valid signal rows
+        return rows + HOLIDAY_CUSHION_ROWS
+
+    @property
     def padded_period(self) -> Period:
         p = self._env.period
-
-        warmup_rows = self.max_lookback_days + 10 # +10 just to be safe ig 
-        if self._stale_forecast_scalar:
-            warmup_rows += AVG_ABS_MIN_PERIOD # we need this extra data 
-
+        t0 = (pd.Timestamp(p.t0) - BDay(self.warmup_rows)).date()
         return Period(
-            t0=p.t0 - timedelta(days=warmup_rows),
+            t0=t0,
             tf=p.tf + timedelta(days=1),
         )
 
@@ -94,7 +98,14 @@ class Runner:
 
     def get_unweighted_forecast_data(self):
         df = self._get_raw_forecast_data()
-        return apply_forecast_scalar(df)
+        df_scaled = fc.apply_forecast_scalar(
+            df,
+            self._scalar_key,
+            self._stale_forecast_scalar
+        )
+        if np.isinf(df_scaled).to_numpy().any():
+            raise ValueError("Infinite values reached forecast scaling; check signal functions")
+        return fc.lag(df_scaled) # no lookahead at this point 
 
     ###### Helpers ######
     ### Data
@@ -140,5 +151,13 @@ class Runner:
             axis=1
         )
 
+def _signal_warmup_rows(signal: Signal) -> int:
+    """Rows of history needed before a signal's first valid value.
 
-
+    lookback + any *_days int args (e.g. skip_days) + 1 for the log-return diff.
+    """
+    extra = sum(
+        v for k, v in signal.function_args.items()
+        if k.endswith("_days") and isinstance(v, int) and not isinstance(v, bool)
+    )
+    return signal.lookback_days + extra + 1
