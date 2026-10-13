@@ -2,3 +2,7 @@
 *.gzip
 app.log
 .cache
+ad_hoc/
+__pycache__/
+notes*
+.vscode/
