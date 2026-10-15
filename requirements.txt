@@ -48,7 +48,6 @@ soupsieve==2.10
 stack-data==0.6.3
 tornado==6.5.10
 tqdm==4.70.1
--e file:///home/danny-salib/Documents/Projects/trading_algos
 traitlets==5.16.1
 typing-extensions==4.16.0
 typing-inspection==0.4.4
